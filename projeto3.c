@@ -53,9 +53,9 @@ struct simulador {
     struct controle ctrl;
 };
 
-// ===== NOVA FUNÇÃO: IMPRIMIR MEMÓRIA =====
+// IMPRIMIR MEMÓRIA 
 void imprimir_memoria(struct memoria_dados *mem) {
-    printf("\n=== MEMORIA ===\n");
+    printf("\n MEMORIA \n");
     for (int i = 0; i < DATA_SIZE; i++) {
         if (mem->dados[i] != 0) {
             printf("Mem[%d] = %d\n", i, mem->dados[i]);
@@ -64,7 +64,7 @@ void imprimir_memoria(struct memoria_dados *mem) {
     printf("================\n");
 }
 
-// ===== NOVA FUNÇÃO: VOLTAR INSTRUÇÃO =====
+// VOLTAR INSTRUÇÃO
 void voltar_instrucao(struct simulador *sim) {
     if (sim->pc.prev_pc >= 0) {
         sim->pc.pc = sim->pc.prev_pc;
