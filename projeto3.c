@@ -292,6 +292,8 @@ int main(){
     sim.dmem.dados[42] = 1234;
 
     run_simulation(&sim);
-
+    imprimir_memoria(&sim.dmem); 
+    voltar_instrucao(&sim);
+    
     return 0;
 }
