@@ -12,12 +12,12 @@ enum classe_inst {
 
 struct instrucao {
     enum classe_inst tipo_inst;
-    char inst_char[INSTR_SIZE+1];
+    char inst_char[INSTR_SIZE+1]; // intrução em binario
     int opcode;
-    int rs, rt, rd;
-    int funct;
-    int imm;
-    int addr;
+    int rs, rt, rd; // reg
+    int funct; // ula, tipo R
+    int imm; //valor imediato tipo I
+    int addr; // endereço tipo j
 };
 
 struct memoria_dados {
@@ -46,7 +46,7 @@ struct simulador {
     struct memoria_dados dmem;
     struct pc pc; // contador do meu pc
     int reg[REG_COUNT];
-    struct instrucao *programa;
+    struct instrucao *programa; // vetor das instruçoes
     int prog_size;
 
     struct ULA ula;
@@ -95,7 +95,7 @@ void unidade_controle(struct instrucao *inst, struct controle *ctrl) {
 
     if (inst->tipo_inst == tipo_R) {
 
-        ctrl->reg_write = 1;
+        ctrl->reg_write = 1; // escrevendo no meu reg
 
         switch(inst->funct) {
             case 0: ctrl->alu_op = 0; break; // ADD
@@ -121,12 +121,12 @@ void unidade_controle(struct instrucao *inst, struct controle *ctrl) {
 //  DECODIFICADOR 
 void decodificador(struct instrucao *inst) {
 
-    inst->inst_char[INSTR_SIZE] = '\0';
+    inst->inst_char[INSTR_SIZE] = '\0'; // fim string
 
     char opcode_str[5];
     strncpy(opcode_str, inst->inst_char, 4);
     opcode_str[4] = '\0';
-    inst->opcode = strtol(opcode_str, NULL, 2);
+    inst->opcode = strtol(opcode_str, NULL, 2); // conversão
     
     if (inst->opcode == 0) { // Tipo R
         inst->tipo_inst = tipo_R;
