@@ -70,7 +70,7 @@ void voltar_instrucao(struct simulador *sim) {
         sim->pc.pc = sim->pc.prev_pc;
         printf("\nVoltou para instrucao %d\n", sim->pc.pc);
     } else {
-        printf("\nNao ha instrucao anterior\n");
+        printf("\nNao a instrucao anterior\n");
     }
 }
 
