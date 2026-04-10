@@ -213,8 +213,8 @@ void executar_instrucao(struct simulador *sim, struct instrucao *inst) {
         sim->ula.entrada1 = sim->reg[inst->rs];
         sim->ula.entrada2 = sim->reg[inst->rt];
 // ula, op, res rd
-        sim->reg[inst->rd] =
-            executar_ula(&sim->ula, sim->ctrl.alu_op);
+        sim->reg[inst->rd] = //
+            executar_ula(&sim->ula, sim->ctrl.alu_op); // chama a função ULA
     }
 
     // LW
