@@ -32,7 +32,7 @@ struct pc {
 struct ULA {
     int entrada1;
     int entrada2;
-    int resultado;
+    int resultado; //  RD ou Memória
 };
 
 struct controle {
