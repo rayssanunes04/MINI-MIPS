@@ -191,7 +191,7 @@ void executar_instrucao(struct simulador *sim, struct instrucao *inst) {
     // HALT
     if (strcmp(inst->inst_char, "0000000000000000") == 0) { // para
         printf("HALT\n");
-        sim->pc.pc = sim->prog_size;~// final
+        sim->pc.pc = sim->prog_size; // final
         return;
     }
 
