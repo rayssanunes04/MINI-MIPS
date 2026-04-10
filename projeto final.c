@@ -26,7 +26,7 @@ struct memoria_dados {
 
 struct pc {
     int pc;
-    int prev_pc;
+    int prev_pc; // back
 };
 
 struct ULA {
@@ -53,9 +53,6 @@ struct simulador {
     struct controle ctrl;
 };
 
-// ================= FUNÇÕES =================
-
-// MEMÓRIA
 void imprimir_memoria(struct memoria_dados *mem) {
     printf("\nMEMORIA:\n");
     for (int i = 0; i < DATA_SIZE; i++) {
@@ -65,7 +62,6 @@ void imprimir_memoria(struct memoria_dados *mem) {
     }
 }
 
-// REGISTRADORES
 void mostrar_registradores(int reg[]) {
     printf("\nREGISTRADORES:\n");
     for (int i = 0; i < REG_COUNT; i++) {
@@ -73,17 +69,16 @@ void mostrar_registradores(int reg[]) {
     }
 }
 
-// BACK
 void voltar_instrucao(struct simulador *sim) {
     if (sim->pc.prev_pc >= 0) {
-        sim->pc.pc = sim->pc.prev_pc;
+        sim->pc.pc = sim->pc.prev_pc; // volta pro o pc
         printf("\nVoltou para instrucao %d\n", sim->pc.pc);
     } else {
         printf("\nNao ha instrucao anterior\n");
     }
 }
 
-// SALVAR .dat
+
 void salvar_memoria_dados(struct memoria_dados *mem, const char *nome) {
     FILE *arq = fopen(nome, "w");
     if (!arq) return;
@@ -98,7 +93,6 @@ void salvar_memoria_dados(struct memoria_dados *mem, const char *nome) {
     printf("Memoria salva em %s\n", nome);
 }
 
-// SALVAR .asm
 void salvar_programa(struct simulador *sim, const char *nome) {
     FILE *arq = fopen(nome, "w");
     if (!arq) return;
@@ -111,7 +105,6 @@ void salvar_programa(struct simulador *sim, const char *nome) {
     printf("Programa salvo em %s\n", nome);
 }
 
-// ULA
 int executar_ula(struct ULA *ula, int op) {
     switch(op) {
         case 0: ula->resultado = ula->entrada1 + ula->entrada2; break;
@@ -124,7 +117,6 @@ int executar_ula(struct ULA *ula, int op) {
     return ula->resultado;
 }
 
-// CONTROLE
 void unidade_controle(struct instrucao *inst, struct controle *ctrl) {
     ctrl->alu_op = 0;
     ctrl->mem_read = 0;
@@ -132,8 +124,8 @@ void unidade_controle(struct instrucao *inst, struct controle *ctrl) {
     ctrl->reg_write = 0;
 
     if (inst->tipo_inst == tipo_R) {
-        ctrl->reg_write = 1;
-        ctrl->alu_op = inst->funct;
+        ctrl->reg_write = 1; // escrevendo no reg
+        ctrl->alu_op = inst->funct; // qual op fazer ( funct no dec )
     }
     else if (inst->tipo_inst == tipo_I) {
         if (inst->opcode == 4) { // LW
@@ -146,26 +138,25 @@ void unidade_controle(struct instrucao *inst, struct controle *ctrl) {
     }
 }
 
-// DECODIFICADOR
 void decodificador(struct instrucao *inst) {
 
-    inst->inst_char[INSTR_SIZE] = '\0';
+    inst->inst_char[INSTR_SIZE] = '\0'; // val
 
     char opcode_str[5];
-    strncpy(opcode_str, inst->inst_char, 4);
+    strncpy(opcode_str, inst->inst_char, 4); // 
     opcode_str[4] = '\0';
-    inst->opcode = strtol(opcode_str, NULL, 2);
+    inst->opcode = strtol(opcode_str, NULL, 2); // con
 
     if (inst->opcode == 0) {
         inst->tipo_inst = tipo_R;
 
-        char rs[4], rt[4], rd[4], funct[4];
+        char rs[4], rt[4], rd[4], funct[4]; // variavel
 
         strncpy(rs, inst->inst_char + 4, 3); rs[3] = '\0';
         strncpy(rt, inst->inst_char + 7, 3); rt[3] = '\0';
         strncpy(rd, inst->inst_char + 10, 3); rd[3] = '\0';
         strncpy(funct, inst->inst_char + 13, 3); funct[3] = '\0';
-
+// con
         inst->rs = strtol(rs, NULL, 2);
         inst->rt = strtol(rt, NULL, 2);
         inst->rd = strtol(rd, NULL, 2);
@@ -195,13 +186,12 @@ void decodificador(struct instrucao *inst) {
     }
 }
 
-// EXECUÇÃO
 void executar_instrucao(struct simulador *sim, struct instrucao *inst) {
 
     // HALT
-    if (strcmp(inst->inst_char, "0000000000000000") == 0) {
+    if (strcmp(inst->inst_char, "0000000000000000") == 0) { // para
         printf("HALT\n");
-        sim->pc.pc = sim->prog_size;
+        sim->pc.pc = sim->prog_size;~// final
         return;
     }
 
@@ -212,8 +202,8 @@ void executar_instrucao(struct simulador *sim, struct instrucao *inst) {
 
     // BEQ
     if (inst->tipo_inst == tipo_I && inst->opcode == 9) {
-        if (sim->reg[inst->rs] == sim->reg[inst->rt]) {
-            sim->pc.pc += inst->imm;
+        if (sim->reg[inst->rs] == sim->reg[inst->rt]) { 
+            sim->pc.pc += inst->imm; // + im 
             return;
         }
     }
@@ -222,30 +212,29 @@ void executar_instrucao(struct simulador *sim, struct instrucao *inst) {
     if (inst->tipo_inst == tipo_R && sim->ctrl.reg_write) {
         sim->ula.entrada1 = sim->reg[inst->rs];
         sim->ula.entrada2 = sim->reg[inst->rt];
-
+// ula, op, res rd
         sim->reg[inst->rd] =
             executar_ula(&sim->ula, sim->ctrl.alu_op);
     }
 
     // LW
-    if (sim->ctrl.mem_read) {
+    if (sim->ctrl.mem_read) { //  cont le mem
         sim->reg[inst->rt] =
             sim->dmem.dados[sim->reg[inst->rs] + inst->imm];
     }
 
     // SW
-    if (sim->ctrl.mem_write) {
+    if (sim->ctrl.mem_write) { // es mem
         sim->dmem.dados[sim->reg[inst->rs] + inst->imm] =
             sim->reg[inst->rt];
     }
 
     // JUMP
     if (inst->tipo_inst == tipo_J) {
-        sim->pc.pc = inst->addr;
+        sim->pc.pc = inst->addr; // jump ints
     }
 }
 
-// STEP
 void step_simulation(struct simulador *sim) {
 
     if (sim->pc.pc >= sim->prog_size) {
@@ -253,26 +242,25 @@ void step_simulation(struct simulador *sim) {
         return;
     }
 
-    struct instrucao *inst = &sim->programa[sim->pc.pc];
+    struct instrucao *inst = &sim->programa[sim->pc.pc]; // inst ataul pc
 
-    sim->pc.prev_pc = sim->pc.pc;
+    sim->pc.prev_pc = sim->pc.pc; // guarda v pc
 
     decodificador(inst);
-    unidade_controle(inst, &sim->ctrl);
+    unidade_controle(inst, &sim->ctrl); // decide 
 
     printf("\nExecutando %d: %s\n", sim->pc.pc, inst->inst_char);
 
     executar_instrucao(sim, inst);
 
-    if (inst->tipo_inst != tipo_J) {
-        sim->pc.pc++;
+    if (inst->tipo_inst != tipo_J) { // atualiza 
+        sim->pc.pc++; // prox
     }
 }
-
-// RUN
+// 1 
 void run_simulation(struct simulador *sim) {
     while (sim->pc.pc < sim->prog_size) {
-        step_simulation(sim);
+        step_simulation(sim); // ins, dec, exec, atu
     }
 }
 
