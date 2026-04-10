@@ -270,11 +270,11 @@ void menu(struct simulador *sim) {
 
     do {
         printf("\n===== MENU =====\n");
-        printf("1. Step\n");
-        printf("2. Run\n");
+        printf("1. Executa uma instrucao (Step)\n");
+        printf("2. Executa programa (Run)\n");
         printf("3. Registradores\n");
         printf("4. Memoria\n");
-        printf("5. Back\n");
+        printf("5. volta uma instrução (Back)\n");
         printf("6. Salvar .dat\n");
         printf("7. Salvar .asm\n");
         printf("0. Sair\n");
