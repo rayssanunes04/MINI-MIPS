@@ -26,7 +26,7 @@ struct memoria_dados {
 
 struct pc {
     int pc;
-    int prev_pc; // back
+    int prev_pc; 
 };
 
 struct ULA {
@@ -36,10 +36,10 @@ struct ULA {
 };
 
 struct controle {
-    int alu_op; 
-    int mem_read;
-    int mem_write;
-    int reg_write;
+    int alu_op;  
+    int mem_read; // lw
+    int mem_write; // sw
+    int reg_write; // r e lw
 };
 
 struct simulador {
@@ -125,7 +125,7 @@ void unidade_controle(struct instrucao *inst, struct controle *ctrl) {
 
     if (inst->tipo_inst == tipo_R) {
         ctrl->reg_write = 1; // escrevendo no reg
-        ctrl->alu_op = inst->funct; //  funct da inst vai virar alu_op
+        ctrl->alu_op = inst->funct; //  define op da ULA
     }
     else if (inst->tipo_inst == tipo_I) {
         if (inst->opcode == 4) { // LW
