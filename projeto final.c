@@ -128,7 +128,7 @@ void unidade_controle(struct instrucao *inst, struct controle *ctrl) {
         ctrl->alu_op = inst->funct; //  define op da ULA
     }
     else if (inst->tipo_inst == tipo_I) {
-        if (inst->opcode == 4) { // LW
+        if (inst->opcode == 4) { // leitura e escrita
             ctrl->mem_read = 1;
             ctrl->reg_write = 1;
         }
@@ -140,12 +140,12 @@ void unidade_controle(struct instrucao *inst, struct controle *ctrl) {
 
 void decodificador(struct instrucao *inst) {
 
-    inst->inst_char[INSTR_SIZE] = '\0'; // val
+    inst->inst_char[INSTR_SIZE] = '\0'; 
 
     char opcode_str[5];
-    strncpy(opcode_str, inst->inst_char, 4); // 
+    strncpy(opcode_str, inst->inst_char, 4); 
     opcode_str[4] = '\0';
-    inst->opcode = strtol(opcode_str, NULL, 2); // con
+    inst->opcode = strtol(opcode_str, NULL, 2); // converte
 
     if (inst->opcode == 0) {
         inst->tipo_inst = tipo_R;
@@ -197,7 +197,7 @@ void executar_instrucao(struct simulador *sim, struct instrucao *inst) {
 
     // ADDI
     if (inst->tipo_inst == tipo_I && inst->opcode == 8) {
-        sim->reg[inst->rt] = sim->reg[inst->rs] + inst->imm;
+        sim->reg[inst->rt] = sim->reg[inst->rs] + inst->imm;// soma imm
     }
 
     // BEQ
@@ -217,13 +217,13 @@ void executar_instrucao(struct simulador *sim, struct instrucao *inst) {
             executar_ula(&sim->ula, sim->ctrl.alu_op); // chama a função ULA
     }
 
-    // LW
+    // LW ( carregando na mem )
     if (sim->ctrl.mem_read) { //  cont le mem
         sim->reg[inst->rt] =
             sim->dmem.dados[sim->reg[inst->rs] + inst->imm];
     }
 
-    // SW
+    // SW ( slava na memo )
     if (sim->ctrl.mem_write) { // es mem
         sim->dmem.dados[sim->reg[inst->rs] + inst->imm] =
             sim->reg[inst->rt];
