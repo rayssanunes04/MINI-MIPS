@@ -351,7 +351,7 @@ void menu(struct simulador *sim) {
 
 int main() {
 
-    FILE *arq = fopen("teste.mem", "r");
+    FILE *arq = fopen("teste.mem.txt", "r");
 
     if (!arq) {
         printf("Erro ao abrir teste.mem\n");
