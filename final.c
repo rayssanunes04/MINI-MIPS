@@ -122,7 +122,7 @@ void unidade_controle(struct instrucao *inst, struct controle *ctrl) {
     if (inst->tipo_inst == tipo_R) {
 
         ctrl->reg_write = 1; // escrevendo no meu registrador
-        ctrl->alu_op = inst->funct; // op da ULA vem do funct
+        ctrl->alu_op = inst->funct; // op da ULA vem do funct AQUI DEFINE
     }
 //i
     else if (inst->tipo_inst == tipo_I) {
@@ -185,8 +185,7 @@ void decodificador(struct instrucao *inst) { // transforma binario
             inst->rd = (inst->rd << 1) | (inst->inst_char[i] - '0');
 //bits 13–15 → funct
         for (i = 13; i < 16; i++)
-            inst->funct = (inst->funct << 1) | (inst->inst_char[i] - '0');
-    }
+            inst->funct = (inst->funct << 1) | (inst->inst_char[i] - '0'); (    } // últimos bits da instrução ULA
 // PARTE I
     else if (inst->tipo_inst == tipo_I) {
 
