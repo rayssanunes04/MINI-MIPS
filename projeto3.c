@@ -1,4 +1,4 @@
-#include <stdio.h> 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -7,12 +7,14 @@
 #define REG_COUNT 32
 
 enum classe_inst {
-    tipo_I, tipo_J, tipo_R, tipo_OUTROS
+    tipo_I,
+    tipo_J,
+    tipo_R
 };
 
 struct instrucao {
     enum classe_inst tipo_inst;
-    char inst_char[INSTR_SIZE+1];
+    char inst_char[INSTR_SIZE + 1]; // guardando a inst em binario
     int opcode;
     int rs, rt, rd;
     int funct;
@@ -26,7 +28,7 @@ struct memoria_dados {
 
 struct pc {
     int pc;
-    int prev_pc;
+    int prev_pc; // voltando o back
 };
 
 struct ULA {
@@ -37,14 +39,14 @@ struct ULA {
 
 struct controle {
     int alu_op;
-    int mem_read;
-    int mem_write;
-    int reg_write;
+    int mem_read; //lw
+    int mem_write; // sw
+    int reg_write; // escrevndo reg
 };
 
 struct simulador {
     struct memoria_dados dmem;
-    struct pc pc; // contador do meu pc
+    struct pc pc;
     int reg[REG_COUNT];
     struct instrucao *programa;
     int prog_size;
@@ -53,225 +55,312 @@ struct simulador {
     struct controle ctrl;
 };
 
-// IMPRIMIR MEMÓRIA 
-void imprimir_memoria(struct memoria_dados *mem) {
-    printf("\n MEMORIA \n");
-    for (int i = 0; i < DATA_SIZE; i++) {
+
+void imprimir_memoria(struct memoria_dados *mem) { // rec ponteiro para a minha memoria
+    int i;
+
+    printf("\n=== MEMORIA ===\n");
+
+    for (i = 0; i < DATA_SIZE; i++) {
+
         if (mem->dados[i] != 0) {
             printf("Mem[%d] = %d\n", i, mem->dados[i]);
         }
     }
-    printf("================\n");
 }
+// mostra posição e valor da memoria
+void mostrar_registradores(int reg[]) { 
 
-// VOLTAR INSTRUÇÃO
-void voltar_instrucao(struct simulador *sim) {
-    if (sim->pc.prev_pc >= 0) {
-        sim->pc.pc = sim->pc.prev_pc;
-        printf("\nVoltou para instrucao %d\n", sim->pc.pc);
-    } else {
-        printf("\nNao a instrucao anterior\n");
+    int i;
+
+    printf("\n=== REGISTRADORES ===\n");
+
+    for (i = 0; i < REG_COUNT; i++) {
+        printf("R%d = %d\n", i, reg[i]);
     }
 }
+// imprimindo os 32 reg
 
-//ula
-int executar_ula(struct ULA *ula, int operacao) {
-    switch(operacao) {
 
-        case 0: // ADD
+int executar_ula(struct ULA *ula, int op) {
+
+    switch(op) {
+//add
+        case 0:
             ula->resultado = ula->entrada1 + ula->entrada2;
             break;
-
-        case 1: // SUB
+//sub
+        case 1:
             ula->resultado = ula->entrada1 - ula->entrada2;
             break;
-
-        case 2: // AND
+//and
+        case 2:
             ula->resultado = ula->entrada1 & ula->entrada2;
             break;
-
-        case 3: // OR
+//or
+        case 3:
             ula->resultado = ula->entrada1 | ula->entrada2;
             break;
 
-        case 4: // SLT
-            ula->resultado = (ula->entrada1 < ula->entrada2) ? 1 : 0;
-            break;
-
         default:
-            printf("erro\n");
             ula->resultado = 0;
+            break;
     }
 
     return ula->resultado;
 }
 
-//  UNIDADE DE CONTROLE
+
+// instrução ja vem decodificada
 void unidade_controle(struct instrucao *inst, struct controle *ctrl) {
 
     ctrl->alu_op = 0;
     ctrl->mem_read = 0;
     ctrl->mem_write = 0;
     ctrl->reg_write = 0;
-
+// tipo R
     if (inst->tipo_inst == tipo_R) {
 
-        ctrl->reg_write = 1;
-
-        switch(inst->funct) {
-            case 0: ctrl->alu_op = 0; break; // ADD
-            case 1: ctrl->alu_op = 1; break; // SUB
-            case 2: ctrl->alu_op = 2; break; // AND
-            case 3: ctrl->alu_op = 3; break; // OR
-            case 4: ctrl->alu_op = 4; break; // SLT
-            default: ctrl->alu_op = 0;
-        }
+        ctrl->reg_write = 1; // escrevendo no meu registrador
+        ctrl->alu_op = inst->funct; // op da ULA vem do funct
     }
+//i
     else if (inst->tipo_inst == tipo_I) {
+//addi
+        if (inst->opcode == 8) {
 
-        if (inst->opcode == 4) { // LW
-            ctrl->mem_read = 1;
             ctrl->reg_write = 1;
+            ctrl->alu_op = 0; // usa soma
         }
-        else if (inst->opcode == 5) { // SW
-            ctrl->mem_write = 1;
+//lw
+        else if (inst->opcode == 4) {
+
+            ctrl->mem_read = 1; // le a memoria
+            ctrl->reg_write = 1; // escreve no reg
+        }
+//sw
+        else if (inst->opcode == 5) {
+
+            ctrl->mem_write = 1; // escreve na memoria
         }
     }
 }
 
-//  DECODIFICADOR 
-void decodificador(struct instrucao *inst) {
 
-    inst->inst_char[INSTR_SIZE] = '\0';
+void decodificador(struct instrucao *inst) { // transforma binario 
 
-    char opcode_str[5];
-    strncpy(opcode_str, inst->inst_char, 4);
-    opcode_str[4] = '\0';
-    inst->opcode = strtol(opcode_str, NULL, 2);
-    
-    if (inst->opcode == 0) { // Tipo R
+    int i;
+
+    inst->inst_char[INSTR_SIZE] = '\0'; // garante fim da string
+
+    inst->opcode = 0;
+// converte os 4 primeiros bits em inteiro
+    for (i = 0; i < 4; i++) {
+        inst->opcode = (inst->opcode << 1) | (inst->inst_char[i] - '0');
+    }
+// opcode 0 → tipo R
+    if (inst->opcode == 0) {
         inst->tipo_inst = tipo_R;
-
-        char rs[4], rt[4], rd[4], funct[4];
-
-        strncpy(rs, inst->inst_char + 4, 3); rs[3] = '\0';
-        strncpy(rt, inst->inst_char + 7, 3); rt[3] = '\0';
-        strncpy(rd, inst->inst_char + 10, 3); rd[3] = '\0';
-        strncpy(funct, inst->inst_char + 13, 3); funct[3] = '\0';
-
-        inst->rs = strtol(rs, NULL, 2);
-        inst->rt = strtol(rt, NULL, 2);
-        inst->rd = strtol(rd, NULL, 2);
-        inst->funct = strtol(funct, NULL, 2);
-    } 
-    else if (inst->opcode == 2 || inst->opcode == 3) {
+    }
+//opcode 2 → tipo J
+    else if (inst->opcode == 2) {
         inst->tipo_inst = tipo_J;
-
-        char addr[13];
-        strncpy(addr, inst->inst_char + 4, 12);
-        addr[12] = '\0';
-
-        inst->addr = strtol(addr, NULL, 2);
-    } 
+    }
+        // resto → tipo I
     else {
         inst->tipo_inst = tipo_I;
+    }
+// PARTE R
+    if (inst->tipo_inst == tipo_R) {
+//zera tudo
+        inst->rs = inst->rt = inst->rd = inst->funct = 0;
+//bits 4–6 → rs
+        for (i = 4; i < 7; i++)
+            inst->rs = (inst->rs << 1) | (inst->inst_char[i] - '0');
+//bits 7–9 → rt
+        for (i = 7; i < 10; i++)
+            inst->rt = (inst->rt << 1) | (inst->inst_char[i] - '0');
+//bits 10–12 → rd
+        for (i = 10; i < 13; i++)
+            inst->rd = (inst->rd << 1) | (inst->inst_char[i] - '0');
+//bits 13–15 → funct
+        for (i = 13; i < 16; i++)
+            inst->funct = (inst->funct << 1) | (inst->inst_char[i] - '0');
+    }
+// PARTE I
+    else if (inst->tipo_inst == tipo_I) {
 
-        char rs[4], rt[4], imm[7];
+        inst->rs = inst->rt = inst->imm = 0;
 
-        strncpy(rs, inst->inst_char + 4, 3); rs[3] = '\0';
-        strncpy(rt, inst->inst_char + 7, 3); rt[3] = '\0';
-        strncpy(imm, inst->inst_char + 10, 6); imm[6] = '\0';
+        for (i = 4; i < 7; i++)
+            inst->rs = (inst->rs << 1) | (inst->inst_char[i] - '0');
 
-        inst->rs = strtol(rs, NULL, 2);
-        inst->rt = strtol(rt, NULL, 2);
-        inst->imm = strtol(imm, NULL, 2);
+        for (i = 7; i < 10; i++)
+            inst->rt = (inst->rt << 1) | (inst->inst_char[i] - '0');
+//bits finais → imediato
+        for (i = 10; i < 16; i++)
+            inst->imm = (inst->imm << 1) | (inst->inst_char[i] - '0');
+    }
+// Parte J
+    else {
+
+        inst->addr = 0;
+// endereço
+        for (i = 4; i < 16; i++)
+            inst->addr = (inst->addr << 1) | (inst->inst_char[i] - '0');
     }
 }
 
-// EXECUÇÃO =
-void executar_instrucao(struct simulador *sim, struct instrucao *inst) {
 
-    // Tipo R (ULA)
-    if (inst->tipo_inst == tipo_R && sim->ctrl.reg_write) {
+void executar_instrucao(struct simulador *sim, struct instrucao *inst) {
+// se for ADDI
+    if (inst->tipo_inst == tipo_I && inst->opcode == 8) {
+// soma e salva
+        sim->reg[inst->rt] = sim->reg[inst->rs] + inst->imm;
+    }
+//beq
+    else if (inst->tipo_inst == tipo_I && inst->opcode == 9) {
+//compara
+        if (sim->reg[inst->rs] == sim->reg[inst->rt]) {
+            sim->pc.pc += inst->imm; // pula e sai da minha função
+            return;
+        }
+    }
+// TIPO R
+    else if (inst->tipo_inst == tipo_R && sim->ctrl.reg_write) {
 
         sim->ula.entrada1 = sim->reg[inst->rs];
         sim->ula.entrada2 = sim->reg[inst->rt];
 
         sim->reg[inst->rd] =
-            executar_ula(&sim->ula, sim->ctrl.alu_op);
-
-        switch(sim->ctrl.alu_op) {
-            case 0: printf("ADD "); break;
-            case 1: printf("SUB "); break;
-            case 2: printf("AND "); break;
-            case 3: printf("OR "); break;
-            case 4: printf("SLT "); break;
-        }
-
-        printf("R%d, R%d, R%d\n",
-               inst->rd, inst->rs, inst->rt);
+            executar_ula(&sim->ula, sim->ctrl.alu_op); // executa e salva
     }
+//lw
+    else if (sim->ctrl.mem_read) {
 
-    // LW
-    if (sim->ctrl.mem_read) {
         sim->reg[inst->rt] =
-            sim->dmem.dados[sim->reg[inst->rs] + inst->imm];
-
-        printf("LW R%d, %d(R%d)\n",
-               inst->rt, inst->imm, inst->rs);
+            sim->dmem.dados[sim->reg[inst->rs] + inst->imm]; // le a memoria
     }
+//sw
+    else if (sim->ctrl.mem_write) {
 
-    // SW
-    if (sim->ctrl.mem_write) {
         sim->dmem.dados[sim->reg[inst->rs] + inst->imm] =
-            sim->reg[inst->rt];
-
-        printf("SW R%d, %d(R%d)\n",
-               inst->rt, inst->imm, inst->rs);
+            sim->reg[inst->rt]; //escrevendo na memoria
     }
+// jump
+    else if (inst->tipo_inst == tipo_J) {
 
-    // JUMP
-    if (inst->tipo_inst == tipo_J) {
-        printf("J %d\n", inst->addr);
-        sim->pc.pc = inst->addr;
+        sim->pc.pc = inst->addr; // muda PC
     }
 }
 
-// loop de simulação
-void run_simulation(struct simulador *sim) {
+
+void step_simulation(struct simulador *sim) {
+
+    if (sim->pc.pc >= sim->prog_size) {
+        printf("Fim do programa\n");
+        return;
+    }
+
+    struct instrucao *inst = &sim->programa[sim->pc.pc]; // pega a minha instrução atuaç ( posiçã atuaç)
+
+    sim->pc.prev_pc = sim->pc.pc; // salva o PC atual ( pois eu vou voltar dps )
+
+    decodificador(inst); // transforma binario em campos
+    unidade_controle(inst, &sim->ctrl); // define os sinais de controle
+
+    printf("\nExecutando %d: %s\n", sim->pc.pc, inst->inst_char); // mostra qual a inst esta rodandno
+
+    int pc_antigo = sim->pc.pc; // guarda o PC antes de executar
+
+    executar_instrucao(sim, inst); // executando 
+
+    // só incrementa se a instrução NÃO alterou o PC
+    if (sim->pc.pc == pc_antigo) {
+        sim->pc.pc++;
+    }
+}
+
+
+void run_simulation(struct simulador *sim) { // executa o programa inteiro
 
     while (sim->pc.pc < sim->prog_size) {
-
-        struct instrucao *inst = &sim->programa[sim->pc.pc];
-
-        sim->pc.prev_pc = sim->pc.pc;
-
-        decodificador(inst);
-
-        unidade_controle(inst, &sim->ctrl);
-
-        executar_instrucao(sim, inst);
-
-        if (inst->tipo_inst != tipo_J) {
-            sim->pc.pc++;
-        }
+        step_simulation(sim); // uma por vez
     }
 }
 
-// ===== MAIN =====
-int main(){
+//back
+
+void voltar_instrucao(struct simulador *sim) {
+
+    if (sim->pc.prev_pc >= 0) { // olha se tem uma inst anterior
+        sim->pc.pc = sim->pc.prev_pc; // volta o meu PC
+        printf("\nVoltou para instrucao %d\n", sim->pc.pc); // qual voltou
+    }
+}
+
+
+void menu(struct simulador *sim) {
+
+    int op;
+
+    do {
+        printf("\nMenu principal:\n");
+        printf("1. Imprimir memórias\n");
+        printf("2. Imprimir registradores\n");
+        printf("3. Executar programa (run)\n");
+        printf("4. Executar passo (step)\n");
+        printf("5. Voltar instrução (back)\n");
+        printf("0. Sair\n");
+        printf("Opcao: ");
+        scanf("%d", &op);
+
+        switch(op) {
+
+            case 1:
+                imprimir_memoria(&sim->dmem);
+                break;
+
+            case 2:
+                mostrar_registradores(sim->reg);
+                break;
+
+            case 3:
+                run_simulation(sim);
+                break;
+
+            case 4:
+                step_simulation(sim);
+                break;
+
+            case 5:
+                voltar_instrucao(sim);
+                break;
+
+            case 0:
+                break;
+
+            default:
+                printf("Opcao invalida\n");
+                break;
+        }
+
+    } while(op != 0);
+}
+
+
+int main() {
 
     FILE *arq = fopen("teste.mem", "r");
 
-    if (arq == NULL) {
-        printf("Erro ao abrir o arquivo teste.mem\n");
+    if (!arq) {
+        printf("Erro ao abrir teste.mem\n");
         return 1;
     }
 
     struct instrucao programa[100];
     int i = 0;
 
-    // Lê cada linha do arquivo (.mem)
     while (fscanf(arq, "%s", programa[i].inst_char) != EOF) {
         i++;
     }
@@ -288,12 +377,7 @@ int main(){
         .ctrl = {0,0,0,0}
     };
 
-    sim.reg[1] = 0;
-    sim.dmem.dados[42] = 1234;
+    menu(&sim);
 
-    run_simulation(&sim);
-    imprimir_memoria(&sim.dmem); 
-    voltar_instrucao(&sim);
-    
     return 0;
 }
