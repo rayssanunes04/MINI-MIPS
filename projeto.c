@@ -1,39 +1,305 @@
-#include <stdio.h> 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #define DATA_SIZE 256
-#define INSTR_SIZE 16
-#define REG_COUNT 32
+#define INSTR_SIZE 8
+#define REG_COUNT 4
 
 enum classe_inst {
-    tipo_I, tipo_J, tipo_R, tipo_OUTROS
+tipo_I,
+tipo_J,
+tipo_R
 };
 
 struct instrucao {
-    enum classe_inst tipo_inst;
-    char inst_char[INSTR_SIZE+1];
-    int opcode;
-    int rs, rt, rd;
-    int funct;
-    int imm;
-    int addr;
+enum classe_inst tipo_inst;
+char inst_char[INSTR_SIZE + 1];
+int opcode;
+int rs, rt, rd;
+int funct;
+int imm;
+int addr;
 };
 
 struct memoria_dados {
-    int dados[DATA_SIZE];
+int dados[DATA_SIZE];
 };
 
 struct pc {
-    int pc;
-    int prev_pc;
+int pc;
+int prev_pc;
 };
 
 struct ULA {
-    int entrada1;
-    int entrada2;
-    int resultado;
+int entrada1;
+int entrada2;
+int resultado;
 };
+
+struct controle {
+int alu_op;
+int mem_read;
+int mem_write;
+int reg_write;
+};
+
+struct simulador {
+struct memoria_dados dmem;
+struct pc pc;
+int reg[REG_COUNT];
+struct instrucao *programa;
+int prog_size;
+
+```
+struct ULA ula;
+struct controle ctrl;
+```
+
+};
+
+void mostrar_instrucao(struct instrucao *inst) {
+
+```
+if (inst->tipo_inst == tipo_R) {
+    if (inst->funct == 0) printf("ADD\n");
+    else if (inst->funct == 1) printf("SUB\n");
+    else if (inst->funct == 2) printf("AND\n");
+    else if (inst->funct == 3) printf("OR\n");
+}
+else if (inst->tipo_inst == tipo_I) {
+    if (inst->opcode == 2) printf("ADDI\n");
+    else if (inst->opcode == 3) printf("LW/SW\n");
+}
+else {
+    printf("JUMP\n");
+}
+```
+
+}
+
+void mostrar_registradores(int reg[]) {
+
+```
+int i;
+
+printf("\n=== REGISTRADORES ===\n");
+
+for (i = 0; i < REG_COUNT; i++) {
+    printf("R%d = %d\n", i, reg[i]);
+}
+```
+
+}
+
+void decodificador(struct instrucao *inst) {
+
+```
+int i;
+
+inst->inst_char[INSTR_SIZE] = '\0';
+
+inst->opcode = 0;
+
+// bits 0-1
+for (i = 0; i < 2; i++) {
+    inst->opcode = (inst->opcode << 1) | (inst->inst_char[i] - '0');
+}
+
+// 00 -> R
+if (inst->opcode == 0)
+    inst->tipo_inst = tipo_R;
+
+// 01 -> J
+else if (inst->opcode == 1)
+    inst->tipo_inst = tipo_J;
+
+// 10 e 11 -> I
+else
+    inst->tipo_inst = tipo_I;
+
+
+if (inst->tipo_inst == tipo_R) {
+
+    inst->rs = 0;
+    inst->rt = 0;
+    inst->funct = 0;
+
+    // bits 2-3
+    for (i = 2; i < 4; i++)
+        inst->rs = (inst->rs << 1) | (inst->inst_char[i] - '0');
+
+    // bits 4-5
+    for (i = 4; i < 6; i++)
+        inst->rt = (inst->rt << 1) | (inst->inst_char[i] - '0');
+
+    // bits 6-7
+    for (i = 6; i < 8; i++)
+        inst->funct = (inst->funct << 1) | (inst->inst_char[i] - '0');
+
+    inst->rd = inst->rt;
+}
+
+else if (inst->tipo_inst == tipo_I) {
+
+    inst->rs = 0;
+    inst->rt = 0;
+    inst->imm = 0;
+
+    // bits 2-3
+    for (i = 2; i < 4; i++)
+        inst->rs = (inst->rs << 1) | (inst->inst_char[i] - '0');
+
+    // bits 4-5
+    for (i = 4; i < 6; i++)
+        inst->rt = (inst->rt << 1) | (inst->inst_char[i] - '0');
+
+    // bits 6-7
+    for (i = 6; i < 8; i++)
+        inst->imm = (inst->imm << 1) | (inst->inst_char[i] - '0');
+}
+
+else {
+
+    inst->addr = 0;
+
+    // bits 2-7
+    for (i = 2; i < 8; i++)
+        inst->addr = (inst->addr << 1) | (inst->inst_char[i] - '0');
+}
+```
+
+}
+
+int executar_ula(struct ULA *ula, int op) {
+
+```
+switch(op) {
+
+    case 0:
+        ula->resultado = ula->entrada1 + ula->entrada2;
+        break;
+
+    case 1:
+        ula->resultado = ula->entrada1 - ula->entrada2;
+        break;
+
+    case 2:
+        ula->resultado = ula->entrada1 & ula->entrada2;
+        break;
+
+    case 3:
+        ula->resultado = ula->entrada1 | ula->entrada2;
+        break;
+
+    default:
+        ula->resultado = 0;
+}
+
+return ula->resultado;
+```
+
+}
+
+void executar_instrucao(struct simulador *sim, struct instrucao *inst) {
+
+```
+if (inst->tipo_inst == tipo_R) {
+
+    sim->ula.entrada1 = sim->reg[inst->rs];
+    sim->ula.entrada2 = sim->reg[inst->rt];
+
+    sim->reg[inst->rd] = executar_ula(&sim->ula, inst->funct);
+}
+
+else if (inst->tipo_inst == tipo_I) {
+
+    // opcode 10 = ADDI
+    if (inst->opcode == 2) {
+        sim->reg[inst->rt] = sim->reg[inst->rs] + inst->imm;
+    }
+
+    // opcode 11 = SW simples
+    else if (inst->opcode == 3) {
+        sim->dmem.dados[inst->imm] = sim->reg[inst->rt];
+    }
+}
+
+else if (inst->tipo_inst == tipo_J) {
+    sim->pc.pc = inst->addr;
+    return;
+}
+
+sim->pc.pc++;
+```
+
+}
+
+void step_simulation(struct simulador *sim) {
+
+```
+if (sim->pc.pc >= sim->prog_size) {
+    printf("Fim do programa\n");
+    return;
+}
+
+struct instrucao *inst = &sim->programa[sim->pc.pc];
+
+decodificador(inst);
+
+printf("\nInstrucao %d: %s -> ", sim->pc.pc, inst->inst_char);
+mostrar_instrucao(inst);
+
+executar_instrucao(sim, inst);
+
+mostrar_registradores(sim->reg);
+```
+
+}
+
+int main() {
+
+```
+FILE *arq = fopen("teste.mem", "r");
+
+if (!arq) {
+    printf("Erro ao abrir teste.mem\n");
+    return 1;
+}
+
+struct instrucao programa[100];
+int i = 0;
+
+while (fscanf(arq, "%8s", programa[i].inst_char) != EOF) {
+    i++;
+}
+
+fclose(arq);
+
+struct simulador sim = {0};
+
+sim.programa = programa;
+sim.prog_size = i;
+sim.pc.pc = 0;
+
+while (sim.pc.pc < sim.prog_size) {
+    step_simulation(&sim);
+}
+
+return 0;
+```
+
+}
+
+/*
+Exemplo de teste.mem
+
+00010100
+00011001
+10000111
+01000101
+
+*/
 
 struct controle {
     int alu_op;
