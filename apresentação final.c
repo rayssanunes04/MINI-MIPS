@@ -277,7 +277,7 @@ void decodificador(struct instrucao *inst) { // transforma binario
 }
 
 
-void executar_instrucao(struct simulador *sim, struct instrucao *inst) {
+void executar_instrucao(struct simulador *sim, struct instrucao *inst) { // aqui q vao o valores do meu reg
 // se for ADDI
     if (inst->tipo_inst == tipo_I && inst->opcode == 8) {
 // soma e salva
