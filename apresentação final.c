@@ -4,7 +4,7 @@
 
 #define DATA_SIZE 256
 #define INSTR_SIZE 16
-#define REG_COUNT 8  // MINI MIPS → 8 registradores
+#define REG_COUNT 8  
 
 enum classe_inst {
     tipo_I,
@@ -55,7 +55,7 @@ struct simulador {
     struct controle ctrl;
 };
 
-// ===== NOVAS FUNÇÕES =====
+
 
 // mostrar PC
 void mostrar_pc(struct simulador *sim) {
