@@ -440,7 +440,7 @@ int main() {
         return 1;
     }
 
-    struct instrucao programa[100];
+    struct instrucao programa[100]; // estou guardando minhas instruçoes 
     int i = 0;
 
     while (fscanf(arq, "%s", programa[i].inst_char) != EOF) {
