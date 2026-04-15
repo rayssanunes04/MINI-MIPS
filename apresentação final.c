@@ -281,7 +281,7 @@ void executar_instrucao(struct simulador *sim, struct instrucao *inst) { // aqui
 // se for ADDI
     if (inst->tipo_inst == tipo_I && inst->opcode == 8) {
 // soma e salva
-        sim->reg[inst->rt] = sim->reg[inst->rs] + inst->imm;
+        sim->reg[inst->rt] = sim->reg[inst->rs] + inst->imm; // pegando valor do rs, somando com imediato e guardando em rt
     }
 //beq
     else if (inst->tipo_inst == tipo_I && inst->opcode == 9) {
