@@ -4,7 +4,7 @@
 
 #define DATA_SIZE 256
 #define INSTR_SIZE 16
-#define REG_COUNT 32
+#define REG_COUNT 8  // MINI MIPS → 8 registradores
 
 enum classe_inst {
     tipo_I,
@@ -98,8 +98,10 @@ void digitar_memoria(struct memoria_dados *mem) {
 
     for (int i = 0; i < n; i++) {
 
-        printf("Endereco (0 a 255): ");
-        scanf("%d", &pos);
+        do {
+            printf("Endereco (0 a %d): ", DATA_SIZE-1);
+            scanf("%d", &pos);
+        } while (pos < 0 || pos >= DATA_SIZE);
 
         printf("Valor: ");
         scanf("%d", &valor);
@@ -111,14 +113,13 @@ void digitar_memoria(struct memoria_dados *mem) {
 // definir registradores
 void definir_registradores(int reg[]) {
 
-    printf("\n=== DEFINIR REGISTRADORES ===\n");
+    printf("\n=== DEFINIR REGISTRADORES (R0 a R7) ===\n");
 
     for (int i = 0; i < REG_COUNT; i++) {
         printf("R%d: ", i);
         scanf("%d", &reg[i]);
     }
 }
-
 
 void imprimir_memoria(struct memoria_dados *mem) { // rec ponteiro para a minha memoria
     int i;
@@ -334,7 +335,7 @@ void step_simulation(struct simulador *sim) {
     unidade_controle(inst, &sim->ctrl);
 
     printf("\nExecutando %d: %s\n", sim->pc.pc, inst->inst_char);
-    mostrar_instrucao(inst); // NOVO
+    mostrar_instrucao(inst);
 
     executar_instrucao(sim, inst);
 
@@ -361,7 +362,7 @@ void voltar_instrucao(struct simulador *sim) {
 
         struct instrucao *inst = &sim->programa[sim->pc.pc];
         decodificador(inst);
-        mostrar_instrucao(inst); // NOVO
+        mostrar_instrucao(inst);
     }
 }
 
