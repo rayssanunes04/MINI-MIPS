@@ -39,7 +39,7 @@ struct ULA {
 
 struct controle {
     int alu_op;
-    int mem_read; //lw
+    int mem_read; //lw 
     int mem_write; // sw
     int reg_write; // escrevndo reg
 };
@@ -87,7 +87,7 @@ void mostrar_instrucao(struct instrucao *inst) {
 }
 
 // digitar memoria
-void digitar_memoria(struct memoria_dados *mem) {
+void digitar_memoria(struct memoria_dados *mem) { // recebendo a memoria
 
     int n, pos, valor;
 
@@ -106,7 +106,7 @@ void digitar_memoria(struct memoria_dados *mem) {
         printf("Valor: ");
         scanf("%d", &valor);
 
-        mem->dados[pos] = valor;
+        mem->dados[pos] = valor; // armazena na memoria
     }
 }
 
@@ -144,7 +144,7 @@ void mostrar_registradores(int reg[]) {
         printf("R%d = %d\n", i, reg[i]);
     }
 }
-// imprimindo os 32 reg
+// imprimindo os 8 reg
 
 
 int executar_ula(struct ULA *ula, int op) {
