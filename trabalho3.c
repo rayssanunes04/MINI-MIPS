@@ -183,7 +183,7 @@ void decodificador(struct instrucao *inst) { // transforma string binária em ca
             inst->rd = (inst->rd << 1) | (inst->inst_char[i] - '0');
 
         for (int i = 13; i < 16; i++)
-            inst->funct = (inst->funct << 1) | (inst->inst_char[i] - '0');
+            inst->funct = (inst->funct << 1) | (inst->inst_char[i] - '0');//campo funct ula
     }
     else {
 // tipo I e J
@@ -272,7 +272,7 @@ void executar_instrucao(struct simulador *sim, struct instrucao *inst) { // inte
             sim->ula.entrada1 = sim->reg[inst->rs]; // coloca rs na ULA
             sim->ula.entrada2 = sim->reg[inst->rt]; // coloca rt na ULA
 
-            int result = executar_ula(&sim->ula, inst->funct); // chamando a ula, executando R e guaradndo resultado
+            int result = executar_ula(&sim->ula, inst->funct); // chamando a ula, executando R e guaradndo resultado, ULA ESTA SENDO EXECUTA AQUI
 
             sim->reg[inst->rd] = result;//salva resul no reg destino
 
