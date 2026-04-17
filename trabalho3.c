@@ -312,7 +312,7 @@ void step_simulation(struct simulador *sim) {
 
 void run_simulation(struct simulador *sim) {
 
-    while (sim->pc.pc < sim->prog_size)
+    while (sim->pc.pc < sim->prog_size) // Posição atual e quantidade de inst ( executa quando ainda tem inst) 
         step_simulation(sim); // executa 1 inst por vez
 }
 
