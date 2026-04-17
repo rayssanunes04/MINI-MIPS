@@ -188,7 +188,7 @@ void decodificador(struct instrucao *inst) { // transforma string binária em ca
     else {
 // tipo I e J
         for (int i = 4; i < 7; i++)
-            inst->rs = (inst->rs << 1) | (inst->inst_char[i] - '0');
+            inst->rs = (inst->rs << 1) | (inst->inst_char[i] - '0'); // pegando valor atual, deslocando , adicionando novo bit
 
         for (int i = 7; i < 10; i++)
             inst->rt = (inst->rt << 1) | (inst->inst_char[i] - '0');
