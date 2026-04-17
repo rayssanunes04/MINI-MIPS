@@ -300,7 +300,7 @@ void step_simulation(struct simulador *sim) {
 
     decodificador(inst); // transformando binario em campos
 
-    printf("\nExecutando %d: %s\n", sim->pc.pc, inst->inst_char);
+    printf("\nExecutando %d: %s\n", sim->pc.pc, inst->inst_char); //imprime número de ints(PC) e int em binario 
 
     mostrar_instrucao(inst); // traduzao para nossa linguagem
 
