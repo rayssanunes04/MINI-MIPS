@@ -105,7 +105,7 @@ void imprimir_memoria_instrucao(struct simulador *sim) { // mostra todas inst ca
 
     printf("\n=== MEMORIA DE INSTRUCOES ===\n");
 
-    for (int i = 0; i < sim->prog_size; i++) { // mostra indice e inst binaria
+    for (int i = 0; i < sim->prog_size; i++) { // mostra indice e inst binaria (guardando quantas int foram carregadas na memoria) 
         printf("[%d] = %s\n", i, sim->programa[i].inst_char);
     }
 }
